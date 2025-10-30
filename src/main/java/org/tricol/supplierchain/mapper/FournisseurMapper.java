@@ -9,7 +9,7 @@ import org.tricol.supplierchain.entity.Fournisseur;
 @Mapper(componentModel = "spring")
 public interface FournisseurMapper {
 
-    Fournisseur toEntity(FournisseurRequestDTO dto);
+    Fournisseur toEntity(FournisseurRequestDTO fournisseurRequestDTO);
     FournisseurResponseDTO toResponseDTO(Fournisseur fournisseur);
 }
 
