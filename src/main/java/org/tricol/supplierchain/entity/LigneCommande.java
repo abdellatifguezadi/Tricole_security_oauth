@@ -20,7 +20,7 @@ public class LigneCommande {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "commande_id", nullable = false)
     @NotNull(message = "La commande est obligatoire")
-    private CommandeFournisseur commandeFournisseur;
+    private CommandeFournisseur commande;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "produit_id", nullable = false)
@@ -37,4 +37,12 @@ public class LigneCommande {
     @Column(name = "prix_unitaire", nullable = false, precision = 10, scale = 2)
     private BigDecimal prixUnitaire;
 
+    @Column(name = "montant_total", nullable = false, precision = 12, scale = 2)
+    private BigDecimal montantLigneTotal = BigDecimal.ZERO;
+
+    @PrePersist
+    @PreUpdate
+    public void calculerMontantTotal() {
+        this.montantLigneTotal = this.quantite.multiply(this.prixUnitaire);
+    }
 }

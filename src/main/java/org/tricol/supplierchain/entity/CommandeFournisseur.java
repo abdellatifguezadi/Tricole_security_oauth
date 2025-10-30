@@ -67,5 +67,27 @@ public class CommandeFournisseur {
         updatedAt = LocalDateTime.now();
     }
 
+    public void addLigneCommande(LigneCommande ligne) {
+        lignesCommande.add(ligne);
+        ligne.setCommande(this);
+        calculerMontantTotal();
+    }
+
+    public void removeLigneCommande(LigneCommande ligne) {
+        lignesCommande.remove(ligne);
+        ligne.setCommande(null);
+        calculerMontantTotal();
+    }
+
+    public void calculerMontantTotal() {
+        BigDecimal total = BigDecimal.ZERO;
+        for (LigneCommande ligne : this.lignesCommande) {
+            if (ligne.getMontantLigneTotal() != null) {
+                total = total.add(ligne.getMontantLigneTotal());
+            }
+        }
+        this.montantTotal = total;
+    }
+
 
 }
