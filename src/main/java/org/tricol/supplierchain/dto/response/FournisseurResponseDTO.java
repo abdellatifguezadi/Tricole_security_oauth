@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 @Data
 public class FournisseurResponseDTO {
 
+    private Long id;
     private String raisonSociale;
     private String adresse;
     private String ville;
