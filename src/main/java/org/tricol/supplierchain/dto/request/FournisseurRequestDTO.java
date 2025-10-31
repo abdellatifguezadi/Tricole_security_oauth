@@ -6,10 +6,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class FournisseurRequestDTO {
 
     @NotBlank(message = "le raison sociale  est obligatoire")
@@ -34,12 +37,6 @@ public class FournisseurRequestDTO {
     @NotBlank(message = "Le numéro ICE est obligatoire")
     @Pattern(regexp = "\\d{15}", message = "Le numéro ICE doit contenir exactement 15 chiffres")
     private String ice;
-
-    private LocalDateTime dateCreation;
-
-    private LocalDateTime dateModification;
-
-
 
 
 
