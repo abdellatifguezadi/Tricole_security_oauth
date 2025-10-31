@@ -1,4 +1,4 @@
-package org.tricol.supplierchain.service.impl;
+package org.tricol.supplierchain.service;
 
 
 import lombok.RequiredArgsConstructor;
@@ -9,7 +9,9 @@ import org.tricol.supplierchain.entity.Fournisseur;
 import org.tricol.supplierchain.exception.DuplicateResourceException;
 import org.tricol.supplierchain.mapper.FournisseurMapper;
 import org.tricol.supplierchain.repository.FournisseurRepository;
-import org.tricol.supplierchain.service.FournisseurService;
+import org.tricol.supplierchain.service.inter.FournisseurService;
+
+import java.util.List;
 
 
 @Service
@@ -31,5 +33,12 @@ public class FournisseurServiceImpl implements FournisseurService {
         return fournisseurMapper.toResponseDTO(
                 fournisseurRepository.save(fournisseur)
         );
+    }
+
+    public List<FournisseurResponseDTO> getAllFournisseurs() {
+        List<Fournisseur> fournisseurs = fournisseurRepository.findAll();
+        return fournisseurs.stream()
+                .map(fournisseurMapper::toResponseDTO)
+                .toList();
     }
 }
