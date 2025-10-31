@@ -15,7 +15,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommandeFournisseurRequestDTO {
+public class CommandeFournisseurCreateDTO {
 
     @NotNull(message = "L'identifiant du fournisseur est obligatoire")
     private Long fournisseurId;
@@ -32,5 +32,4 @@ public class CommandeFournisseurRequestDTO {
     @Size(min = 1, message = "La commande doit contenir au moins une ligne.")
     private List<LigneCommandeRequestDTO> lignes;
 
-    private StatutCommande statust;
 }

@@ -2,12 +2,10 @@ package org.tricol.supplierchain.entity;
 
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
+import org.springframework.stereotype.Component;
 import org.tricol.supplierchain.enums.StatutCommande;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,6 +16,7 @@ import java.util.List;
 @Entity
 @Table(name = "commande_fournisseur")
 @Data
+@Component
 public class CommandeFournisseur {
 
     @Id
@@ -49,6 +48,7 @@ public class CommandeFournisseur {
 
     @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LigneCommande> lignesCommande = new ArrayList<>();
+
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
