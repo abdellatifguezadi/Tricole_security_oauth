@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 public class LigneCommandeResponseDTO {
     
     private Long id;
-    private Long produitId;
+    private ProduitResponseDTO produit;
     private BigDecimal quantite;
     private BigDecimal prixUnitaire;
     private BigDecimal montantLigneTotal;

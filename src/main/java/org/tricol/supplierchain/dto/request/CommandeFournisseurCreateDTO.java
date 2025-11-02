@@ -20,11 +20,6 @@ public class CommandeFournisseurCreateDTO {
     @NotNull(message = "L'identifiant du fournisseur est obligatoire")
     private Long fournisseurId;
 
-    @NotBlank
-    @Size(max = 100)
-    @NotNull(message = "Numero de commande est obligatoire")
-    private String numeroCommande;
-
     @NotNull(message = "La date de livraison prévue est obligatoire")
     private LocalDate dateLivraisonPrevue;
 

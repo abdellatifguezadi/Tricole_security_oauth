@@ -8,7 +8,7 @@ import org.tricol.supplierchain.dto.request.CommandeFournisseurUpdateDTO;
 import org.tricol.supplierchain.dto.response.CommandeFournisseurResponseDTO;
 import org.tricol.supplierchain.entity.CommandeFournisseur;
 
-@Mapper(componentModel = "spring", uses = {LigneCommandeMapper.class})
+@Mapper(componentModel = "spring", uses = {LigneCommandeMapper.class, FournisseurMapper.class})
 public interface CommandeFournisseurMapper {
 
     // Create
