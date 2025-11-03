@@ -1,24 +1,28 @@
 package org.tricol.supplierchain.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.tricol.supplierchain.dto.request.CommandeFournisseurCreateDTO;
 import org.tricol.supplierchain.dto.request.CommandeFournisseurUpdateDTO;
+import org.tricol.supplierchain.dto.request.LigneCommandeRequestDTO;
 import org.tricol.supplierchain.dto.response.CommandeFournisseurResponseDTO;
-import org.tricol.supplierchain.entity.CommandeFournisseur;
-import org.tricol.supplierchain.entity.Fournisseur;
+import org.tricol.supplierchain.entity.*;
 import org.tricol.supplierchain.enums.StatutCommande;
+import org.tricol.supplierchain.enums.StatutLot;
+import org.tricol.supplierchain.enums.TypeMouvement;
 import org.tricol.supplierchain.exception.BusinessException;
+import org.tricol.supplierchain.exception.OperationNotAllowedException;
 import org.tricol.supplierchain.exception.ResourceNotFoundException;
 import org.tricol.supplierchain.mapper.CommandeFournisseurMapper;
 import org.tricol.supplierchain.mapper.LigneCommandeMapper;
-import org.tricol.supplierchain.repository.CommandeFournisseurRepository;
-import org.tricol.supplierchain.repository.FournisseurRepository;
-import org.tricol.supplierchain.repository.LigneCommandeRepository;
-import org.tricol.supplierchain.repository.ProduitRepository;
+import org.tricol.supplierchain.repository.*;
 import org.tricol.supplierchain.service.inter.CommandeFournisseurService;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -33,9 +37,20 @@ public class CommandeFournisseurServiceimpl implements CommandeFournisseurServic
     private final ProduitRepository produitRepository;
     private final CommandeFournisseurMapper commandeFournisseurMapper;
     private final LigneCommandeMapper ligneCommandeMapper;
-    private final CommandeFournisseur commandeFournisseur;
+    private final LotStockRepository lotStockRepository;
+    private final MouvementStockRepository mouvementStockRepository;
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<CommandeFournisseurResponseDTO> getAllCommandes(){
+        return commandeFournisseurRepository
+                .findAll()
+                .stream()
+                .map(commandeFournisseurMapper::toResponseDto)
+                .toList();
+    }
 
+    @Override
     public CommandeFournisseurResponseDTO createCommande(CommandeFournisseurCreateDTO requestDTO){
         Fournisseur fournisseur = fournisseurRepository
                 .findById(requestDTO.getFournisseurId())
@@ -43,7 +58,25 @@ public class CommandeFournisseurServiceimpl implements CommandeFournisseurServic
 
         CommandeFournisseur commande = commandeFournisseurMapper.toEntity(requestDTO);
 
+        commande.setFournisseur(fournisseur);
+
         commande.setNumeroCommande(UUID.randomUUID().toString());
+
+        List<LigneCommande> lignesCommandes = new ArrayList<>();
+        for (LigneCommandeRequestDTO ligneDTO : requestDTO.getLignes()){
+            Produit produit = produitRepository
+                    .findById(ligneDTO.getProduitId())
+                    .orElseThrow(() -> new ResourceNotFoundException("No Product with ID: " + ligneDTO.getProduitId()));
+            LigneCommande ligne = new LigneCommande();
+            ligne.setProduit(produit);
+            ligne.setCommande(commande);
+            ligne.setQuantite(ligneDTO.getQuantite());
+            ligne.setPrixUnitaire(ligneDTO.getPrixUnitaire());
+            ligne.calculerMontantTotal();
+            lignesCommandes.add(ligne);
+        }
+
+        commande.setLignesCommande(lignesCommandes);
 
         commande.calculerMontantTotal();
 
@@ -52,6 +85,7 @@ public class CommandeFournisseurServiceimpl implements CommandeFournisseurServic
         return commandeFournisseurMapper.toResponseDto(saved);
     }
 
+    @Override
     public CommandeFournisseurResponseDTO updateCommande(Long id, CommandeFournisseurUpdateDTO requestDTO){
 
         CommandeFournisseur commande = commandeFournisseurRepository
@@ -69,6 +103,101 @@ public class CommandeFournisseurServiceimpl implements CommandeFournisseurServic
         CommandeFournisseur updated = commandeFournisseurRepository.save(commande);
 
         return commandeFournisseurMapper.toResponseDto(updated);
+    }
+
+    @Override
+    public CommandeFournisseurResponseDTO getCommandeById(Long id){
+
+        if (id == null || id == 0){
+            throw new IllegalArgumentException("Invalid commande ID");
+        }
+
+        CommandeFournisseur commande = commandeFournisseurRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pas de Commande avec ID: " + id));
+        return commandeFournisseurMapper.toResponseDto(commande);
+
+    }
+
+    @Override
+    public void deleteCommande(Long id){
+        CommandeFournisseur commande = commandeFournisseurRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pas de commande avec ID: " + id));
+        if (commande.getStatut() == StatutCommande.LIVREE || commande.getStatut() == StatutCommande.VALIDEE) {
+            throw new OperationNotAllowedException("Impossible de supprime un commande Livree ou Validee");
+        }
+        commandeFournisseurRepository.deleteById(id);
+    }
+
+    @Override
+    public List<CommandeFournisseurResponseDTO> getCommandesBySupplierId(Long id){
+        Fournisseur fournisseur = fournisseurRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pas de Fournisseur avec ID: " + id));
+        return commandeFournisseurRepository
+                .findBySupplierIdWithRelationship(fournisseur.getId())
+                .stream()
+                .map(commandeFournisseurMapper::toResponseDto)
+                .toList();
+    }
+
+    @Override
+    public CommandeFournisseurResponseDTO receiveCommande(Long id){
+
+        CommandeFournisseur commande = commandeFournisseurRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pas de Commande Fournisseur avec cette ID: " + id));
+
+
+        if (commande.getStatut() != StatutCommande.VALIDEE){
+            throw new BusinessException("Seules les commandes validees peuvent etre receptionnees. Statut actuel : " + commande.getStatut());
+        }
+
+        if (commande.getStatut() == StatutCommande.LIVREE){
+            throw new BusinessException("Commande est deja livree.");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        for (LigneCommande ligne: commande.getLignesCommande()){
+            Produit produit = ligne.getProduit();
+
+            LotStock lot = new LotStock();
+            lot.setNumeroLot("LOT-"+UUID.randomUUID());
+            lot.setProduit(produit);
+            lot.setCommande(commande);
+            lot.setQuantiteInitiale(ligne.getQuantite());
+            lot.setQuantiteRestante(ligne.getQuantite());
+            lot.setPrixUnitaireAchat(ligne.getPrixUnitaire());
+            lot.setDateEntree(now);
+            lot.setStatut(StatutLot.ACTIF);
+
+            lotStockRepository.save(lot);
+
+            MouvementStock mouvement = new MouvementStock();
+            mouvement.setLotStock(lot);
+            mouvement.setDateMouvement(now);
+            mouvement.setMotif("RECEPTION_COMMANDE");
+            mouvement.setTypeMouvement(TypeMouvement.ENTREE);
+            mouvement.setProduit(produit);
+            mouvement.setQuantite(ligne.getQuantite());
+            mouvement.setReference(commande.getNumeroCommande());
+
+            mouvementStockRepository.save(mouvement);
+
+            produit.setStockActuel(produit.getStockActuel().add(ligne.getQuantite()));
+
+            produitRepository.save(produit);
+
+        }
+
+        commande.setStatut(StatutCommande.LIVREE);
+        commande.setDateLivraisonEffective(LocalDate.now());
+
+        CommandeFournisseur receivedCommande = commandeFournisseurRepository.save(commande);
+
+        return commandeFournisseurMapper.toResponseDto(receivedCommande);
     }
 
 
