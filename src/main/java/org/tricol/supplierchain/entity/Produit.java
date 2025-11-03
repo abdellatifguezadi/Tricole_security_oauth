@@ -31,7 +31,7 @@ public class Produit {
     private BigDecimal stockActuel;
 
     @Column(name = "point_commande", nullable = false)
-    private int pointCommande;
+    private BigDecimal pointCommande;
 
     @Column(name = "unite_mesure", nullable = false)
     private String uniteMesure;
