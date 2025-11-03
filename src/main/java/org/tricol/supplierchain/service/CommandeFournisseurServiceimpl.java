@@ -37,7 +37,6 @@ public class CommandeFournisseurServiceimpl implements CommandeFournisseurServic
     private final ProduitRepository produitRepository;
     private final CommandeFournisseurMapper commandeFournisseurMapper;
     private final LigneCommandeMapper ligneCommandeMapper;
-    private final CommandeFournisseur commandeFournisseur;
     private final LotStockRepository lotStockRepository;
     private final MouvementStockRepository mouvementStockRepository;
 
