@@ -10,6 +10,8 @@ import org.tricol.supplierchain.enums.StatutBonSortie;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Entity
@@ -26,9 +28,9 @@ public class BonSortie {
     private String numeroBon;
     @Column(name = "date_sortie", nullable = false)
     private LocalDate dateSortie;
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private StatutBonSortie statut;
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private MotifBonSortie motif;
 
     @Column(name = "created_at", nullable = false)
@@ -36,6 +38,9 @@ public class BonSortie {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime dateModification;
+
+    @OneToMany(mappedBy = "bonSortie", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LigneBonSortie> ligneBonSorties = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
