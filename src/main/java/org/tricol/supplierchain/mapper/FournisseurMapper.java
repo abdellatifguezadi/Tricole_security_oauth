@@ -13,6 +13,7 @@ public interface FournisseurMapper {
 
     Fournisseur toEntity(FournisseurRequestDTO fournisseurRequestDTO);
     FournisseurResponseDTO toResponseDTO(Fournisseur fournisseur);
+
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromDto(FournisseurUpdateDTO dto, @MappingTarget Fournisseur fournisseur);
 

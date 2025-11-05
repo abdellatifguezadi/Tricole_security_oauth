@@ -16,7 +16,6 @@ public class ProduitResponseDTO {
 
     private String description;
 
-    private Double prixUnitaire;
 
     private BigDecimal stockActuel;
 

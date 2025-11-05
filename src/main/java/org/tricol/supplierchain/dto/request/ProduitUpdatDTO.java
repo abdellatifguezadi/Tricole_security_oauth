@@ -14,9 +14,6 @@ public class ProduitUpdatDTO {
 
     private String description;
 
-    @Min(value = 0, message = "le prix unitaire doit être positif")
-    private Double prixUnitaire;
-
     @Min(value = 0, message = "le stock actuel doit être positif")
     private BigDecimal stockActuel;
 
