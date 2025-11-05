@@ -24,8 +24,6 @@ public class Produit {
     @Lob
     private String description;
 
-    @Column(name = "prix_unitaire", nullable = false)
-    private Double prixUnitaire; 
 
     @Column(name = "stock_actuel", nullable = false)
     private BigDecimal stockActuel;

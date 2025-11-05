@@ -20,7 +20,6 @@ CREATE TABLE produits (
     reference VARCHAR(50) NOT NULL UNIQUE,
     nom VARCHAR(255) NOT NULL,
     description LONGTEXT,
-    prix_unitaire DOUBLE NOT NULL,
     categorie VARCHAR(100) NOT NULL,
     stock_actuel DECIMAL(19,2) NOT NULL,
     point_commande DECIMAL(19,2) NOT NULL,

@@ -21,9 +21,6 @@ public class ProduitRequestDTO {
     @NotBlank(message = "la description est obligatoire")
     private String description;
 
-    @NotNull(message = "le prix unitaire est obligatoire")
-    @Min(value = 0, message = "le prix unitaire doit être positif")
-    private Double prixUnitaire;
 
     @NotNull(message = "le stock actuel est obligatoire")
     @Min(value = 0, message = "le stock actuel doit être positif")
