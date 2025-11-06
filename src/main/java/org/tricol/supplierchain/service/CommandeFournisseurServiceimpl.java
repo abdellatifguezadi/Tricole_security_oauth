@@ -102,7 +102,8 @@ public class CommandeFournisseurServiceimpl implements CommandeFournisseurServic
             throw new BusinessException("Impossible de modifier un commande avec statut: " + commande.getStatut());
         }
 
-        if (updateDTO.getFournisseurId() != null && (updateDTO.getFournisseurId().equals(commande.getFournisseur().getId()))){
+
+        if (updateDTO.getFournisseurId() != null && (!updateDTO.getFournisseurId().equals(commande.getFournisseur().getId()))){
             Fournisseur newFournisseur = fournisseurRepository
                     .findById(updateDTO.getFournisseurId())
                     .orElseThrow(() -> new ResourceNotFoundException("Pas de fournisseur avec ID: " + updateDTO.getFournisseurId()));
