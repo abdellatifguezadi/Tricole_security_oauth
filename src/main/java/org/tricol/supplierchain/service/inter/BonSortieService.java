@@ -12,4 +12,6 @@ public interface BonSortieService {
     List<BonSortieResponseDTO> getBonSorties();
 
     BonSortieResponseDTO getBonSortieById(Long id);
+
+    void deleteBonSortie(Long id);
 }

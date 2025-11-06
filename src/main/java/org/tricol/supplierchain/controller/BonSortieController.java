@@ -38,5 +38,11 @@ public class BonSortieController {
         BonSortieResponseDTO bonSortie = bonSortieService.getBonSortieById(id);
         return ResponseEntity.ok(bonSortie);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteBonSortie(@PathVariable Long id) {
+        bonSortieService.deleteBonSortie(id);
+        return ResponseEntity.ok("Bon de sortie avec id " +id +" est supprimé" );
+    }
 }
 
