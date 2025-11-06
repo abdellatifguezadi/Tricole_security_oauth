@@ -9,6 +9,7 @@ import org.tricol.supplierchain.entity.BonSortie;
 import org.tricol.supplierchain.entity.LigneBonSortie;
 import org.tricol.supplierchain.entity.Produit;
 import org.tricol.supplierchain.enums.StatutBonSortie;
+import org.tricol.supplierchain.exception.BusinessException;
 import org.tricol.supplierchain.exception.ResourceNotFoundException;
 import org.tricol.supplierchain.mapper.BonSortieMapper;
 import org.tricol.supplierchain.repository.BonSortieRepository;
@@ -69,4 +70,16 @@ public class BonSortieServiceImpl implements BonSortieService {
                 .orElseThrow(() -> new ResourceNotFoundException("Bon de sortie non trouvé avec l'id " + id));
         return bonSortieMapper.toResponseDTO(bonSortie);
     }
+
+    @Override
+    public void deleteBonSortie(Long id) {
+        BonSortie bonSortie = bonSortieRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Bon de sortie non trouvé avec l'id " + id));
+        if(bonSortie.getStatut() != StatutBonSortie.BROUILLON) {
+            throw new BusinessException("Seul les bons de sortie en statut BROUILLON peuvent être supprimés.");
+        }
+        bonSortieRepository.delete(bonSortie);
+    }
+
+
 }
