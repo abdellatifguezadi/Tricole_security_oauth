@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.tricol.supplierchain.dto.request.CommandeFournisseurCreateDTO;
 import org.tricol.supplierchain.dto.request.CommandeFournisseurUpdateDTO;
-import org.tricol.supplierchain.dto.request.LigneCommandeRequestDTO;
+import org.tricol.supplierchain.dto.request.LigneCommandeCreateDTO;
 import org.tricol.supplierchain.dto.response.CommandeFournisseurResponseDTO;
 import org.tricol.supplierchain.entity.*;
 import org.tricol.supplierchain.enums.StatutCommande;
@@ -66,22 +66,23 @@ public class CommandeFournisseurServiceimpl implements CommandeFournisseurServic
 
         commande.setNumeroCommande(UUID.randomUUID().toString());
 
-        List<LigneCommande> lignesCommandes = new ArrayList<>();
-        for (LigneCommandeRequestDTO ligneDTO : requestDTO.getLignes()){
-            Produit produit = produitRepository
-                    .findById(ligneDTO.getProduitId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Pas de produit avec ID: " + ligneDTO.getProduitId()));
-            LigneCommande ligne = LigneCommande.builder()
-                    .produit(produit)
-                    .commande(commande)
-                    .quantite(ligneDTO.getQuantite())
-                    .prixUnitaire(ligneDTO.getPrixUnitaire())
-                    .build();
-            ligne.calculerMontantTotal();
-            lignesCommandes.add(ligne);
-        }
+//        List<LigneCommande> lignesCommandes = new ArrayList<>();
+//        for (LigneCommandeCreateDTO ligneDTO : requestDTO.getLignes()){
+//            Produit produit = produitRepository
+//                    .findById(ligneDTO.getProduitId())
+//                    .orElseThrow(() -> new ResourceNotFoundException("Pas de produit avec ID: " + ligneDTO.getProduitId()));
+//            LigneCommande ligne = LigneCommande.builder()
+//                    .produit(produit)
+//                    .commande(commande)
+//                    .quantite(ligneDTO.getQuantite())
+//                    .prixUnitaire(ligneDTO.getPrixUnitaire())
+//                    .build();
+//            ligne.calculerMontantTotal();
+//            lignesCommandes.add(ligne);
+//        }
+        createLigneCommande(commande, requestDTO.getLignes());
 
-        commande.setLignesCommande(lignesCommandes);
+        commande.setStatut(StatutCommande.EN_ATTENTE);
 
         commande.calculerMontantTotal();
 
@@ -95,10 +96,26 @@ public class CommandeFournisseurServiceimpl implements CommandeFournisseurServic
 
         CommandeFournisseur commande = commandeFournisseurRepository
                 .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No Commande Found with ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Pas de commande avec ID: " + id));
 
         if (commande.getStatut() != StatutCommande.EN_ATTENTE){
-            throw new BusinessException("Can not modify commande with status: " + commande.getStatut());
+            throw new BusinessException("Impossible de modifier un commande avec statut: " + commande.getStatut());
+        }
+
+        if (requestDTO.getFournisseurId() != null && (requestDTO.getFournisseurId().equals(commande.getFournisseur().getId()))){
+            Fournisseur newFournisseur = fournisseurRepository
+                    .findById(requestDTO.getFournisseurId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Pas de fournisseur avec ID: " + requestDTO.getFournisseurId()));
+            commande.setFournisseur(newFournisseur);
+        }
+
+        if (requestDTO.getDateLivraisonPrevue().equals(commande.getDateLivraisonPrevue())){
+            commande.setDateLivraisonPrevue(requestDTO.getDateLivraisonPrevue());
+        }
+
+        if (requestDTO.getLignes() != null && !requestDTO.getLignes().isEmpty()){
+            commande.getLignesCommande().clear();
+            createLigneCommande(commande, requestDTO.getLignes());
         }
 
         commandeFournisseurMapper.updateEntityFromDto(requestDTO, commande);
@@ -200,6 +217,30 @@ public class CommandeFournisseurServiceimpl implements CommandeFournisseurServic
 
         return commandeFournisseurMapper.toResponseDto(receivedCommande);
     }
+
+
+
+    private void createLigneCommande(CommandeFournisseur commande, List<LigneCommandeCreateDTO> lignesCommande){
+        List<LigneCommande> lignesCommandes = new ArrayList<>();
+        for (LigneCommandeCreateDTO ligneDTO : lignesCommande){
+            Produit produit = produitRepository
+                    .findById(ligneDTO.getProduitId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Pas de produit avec ID: " + ligneDTO.getProduitId()));
+            LigneCommande ligne = LigneCommande.builder()
+                    .produit(produit)
+                    .commande(commande)
+                    .quantite(ligneDTO.getQuantite())
+                    .prixUnitaire(ligneDTO.getPrixUnitaire())
+                    .build();
+            ligne.calculerMontantTotal();
+            lignesCommandes.add(ligne);
+            commande.addLigneCommande(ligne);
+        }
+
+    }
+
+
+
 
 
 }
