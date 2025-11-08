@@ -161,13 +161,11 @@ public class BonSortieServiceImpl implements BonSortieService {
 
         for(LigneBonSortie ligne :  bonSortie.getLigneBonSorties()) {
 
-            List<LotStock> lotStocks = lotStockRepository.findByProduitIdOrderByDateEntreeAsc(ligne.getProduit().getId());            // lot 1 fih p1
+            List<LotStock> lotStocks = lotStockRepository.findByProduitIdOrderByDateEntreeAsc(ligne.getProduit().getId());
 
             BigDecimal quantiteRestante = ligne.getQuantite();
 
             BigDecimal montantLigne = BigDecimal.ZERO;
-
-
 
             for(LotStock lotStock : lotStocks) {
 
@@ -206,6 +204,10 @@ public class BonSortieServiceImpl implements BonSortieService {
             if (quantiteRestante.compareTo(BigDecimal.ZERO) > 0) {
                 throw new BusinessException("Stock insuffisant pour le produit : " + ligne.getProduit().getNom());
             }
+
+            Produit produit = ligne.getProduit();
+            produit.setStockActuel(produit.getStockActuel().subtract(ligne.getQuantite()));
+            produitRepository.save(produit);
 
             montantTotal = montantTotal.add(montantLigne);
         }
