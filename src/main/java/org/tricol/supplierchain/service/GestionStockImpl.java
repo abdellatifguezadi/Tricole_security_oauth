@@ -193,7 +193,6 @@ public class GestionStockImpl implements GestionStockService {
         StockProduitResponseDTO produitResponse = stockMapper.toStockProduitDto(produit);
 
         List<LotStock> actifsLots = lotStockRepository.findByProduitIdAndStatutOrderByDateEntreeAsc(produit.getId(), StatutLot.ACTIF);
-        System.err.println(actifsLots);
 
         produitResponse.setLots(actifsLots
                 .stream()
@@ -207,6 +206,7 @@ public class GestionStockImpl implements GestionStockService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         produitResponse.setValorisationTotale(valorisation);
         produitResponse.setAlerteSeuil(isEnAlerte(produit));
+        produitResponse.setStockTotal(getQuantiteDisponible(produit.getId()));
 
 
         return produitResponse;
