@@ -157,12 +157,16 @@ public class BonSortieServiceImpl implements BonSortieService {
         if(bonSortie.getStatut() != StatutBonSortie.BROUILLON) {
             throw new BusinessException("Seul les bons de sortie en statut BROUILLON peuvent être annulés.");
         }
+        BigDecimal montantTotal = BigDecimal.ZERO;
 
         for(LigneBonSortie ligne :  bonSortie.getLigneBonSorties()) {
 
             List<LotStock> lotStocks = lotStockRepository.findByProduitIdOrderByDateEntreeAsc(ligne.getProduit().getId());            // lot 1 fih p1
 
             BigDecimal quantiteRestante = ligne.getQuantite();
+
+            BigDecimal montantLigne = BigDecimal.ZERO;
+
 
 
             for(LotStock lotStock : lotStocks) {
@@ -179,6 +183,8 @@ public class BonSortieServiceImpl implements BonSortieService {
 
                 BigDecimal quantiteALever = quantiteDisponible.min(quantiteRestante);
 
+                BigDecimal montantMouvement = quantiteALever.multiply(lotStock.getPrixUnitaireAchat());
+
                 MouvementStock mv = MouvementStock.builder()
                         .produit(ligne.getProduit())
                         .lotStock(lotStock)
@@ -194,11 +200,16 @@ public class BonSortieServiceImpl implements BonSortieService {
                 lotStockRepository.save(lotStock);
 
                 quantiteRestante = quantiteRestante.subtract(quantiteALever);
+
+                montantLigne = montantLigne.add(montantMouvement);
             }
             if (quantiteRestante.compareTo(BigDecimal.ZERO) > 0) {
                 throw new BusinessException("Stock insuffisant pour le produit : " + ligne.getProduit().getNom());
             }
+
+            montantTotal = montantTotal.add(montantLigne);
         }
+        bonSortie.setMontantTotal(montantTotal);
         bonSortie.setStatut(StatutBonSortie.VALIDE);
         bonSortieRepository.save(bonSortie);
        return  bonSortieMapper.toResponseDTO(bonSortie);
