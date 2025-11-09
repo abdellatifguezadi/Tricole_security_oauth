@@ -7,8 +7,11 @@ import org.tricol.supplierchain.dto.request.ProduitUpdatDTO;
 import org.tricol.supplierchain.dto.response.ProduitResponseDTO;
 import org.tricol.supplierchain.entity.Produit;
 import org.tricol.supplierchain.exception.DuplicateResourceException;
+import org.tricol.supplierchain.exception.OperationNotAllowedException;
 import org.tricol.supplierchain.exception.ResourceNotFoundException;
 import org.tricol.supplierchain.mapper.ProduitMapper;
+import org.tricol.supplierchain.repository.LigneCommandeRepository;
+import org.tricol.supplierchain.repository.LigneBonSortieRepository;
 import org.tricol.supplierchain.repository.ProduitRepository;
 import org.tricol.supplierchain.service.inter.Produitservice;
 
@@ -22,6 +25,8 @@ public class ProduitServiceImpl implements Produitservice {
 
     private final ProduitRepository produitRepository;
     private final ProduitMapper produitMapper;
+    private final LigneCommandeRepository ligneCommandeRepository;
+    private final LigneBonSortieRepository ligneBonSortieRepository;
 
     @Override
     public ProduitResponseDTO createProduit(ProduitRequestDTO produitRequestDTO) {
@@ -51,6 +56,21 @@ public class ProduitServiceImpl implements Produitservice {
     public void deleteProduit(Long id) {
         Produit produit = produitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produit avec id " + id + " n'existe pas"));
+
+        if (ligneCommandeRepository.existsByProduitId(id)) {
+            throw new OperationNotAllowedException(
+                "Impossible de supprimer le produit avec id " + id +
+                " car il est référencé dans des lignes de commande"
+            );
+        }
+
+        if (ligneBonSortieRepository.existsByProduitId(id)) {
+            throw new OperationNotAllowedException(
+                "Impossible de supprimer le produit avec id " + id +
+                " car il est référencé dans des lignes de bon de sortie"
+            );
+        }
+
         produitRepository.delete(produit);
     }
 

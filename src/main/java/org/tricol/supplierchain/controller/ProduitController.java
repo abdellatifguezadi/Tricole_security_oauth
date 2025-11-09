@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import org.tricol.supplierchain.dto.request.ProduitRequestDTO;
 import org.tricol.supplierchain.dto.request.ProduitUpdatDTO;
 import org.tricol.supplierchain.dto.response.ProduitResponseDTO;
+import org.tricol.supplierchain.dto.response.StockProduitResponseDTO;
+import org.tricol.supplierchain.service.inter.GestionStock;
 import org.tricol.supplierchain.service.inter.Produitservice;
 
 import java.util.List;
@@ -18,6 +20,7 @@ import java.util.List;
 public class ProduitController {
 
     private final Produitservice produitservice;
+    private final GestionStock stockService;
 
     @GetMapping
     public ResponseEntity<List<ProduitResponseDTO>> getAllProduits() {
@@ -48,6 +51,13 @@ public class ProduitController {
     public ResponseEntity<ProduitResponseDTO> updateProduit(@PathVariable Long id, @Valid @RequestBody ProduitUpdatDTO produitUpdatDTO) {
         ProduitResponseDTO updatedProduit = produitservice.modifierProduit(id, produitUpdatDTO);
         return ResponseEntity.ok(updatedProduit);
+    }
+
+
+
+    @GetMapping("/{id}/stock")
+    public ResponseEntity<StockProduitResponseDTO> getStockByProduit(@PathVariable Long id) {
+        return ResponseEntity.ok(stockService.getStockByProduit(id));
     }
 
 
