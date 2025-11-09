@@ -172,6 +172,7 @@ public class BonSortieServiceImpl implements BonSortieService {
 
         if (!deficits.isEmpty()){
             List<CommandeFournisseurResponseDTO> commandes =  gestionStockService.createCommandeFournisseurEnCasUrgente(deficits);
+            commandes.forEach(commande -> System.err.println(commande.getId()));
             throw new StockInsuffisantException(bonSortie.getNumeroBon(), deficits);
         }
 

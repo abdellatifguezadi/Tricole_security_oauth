@@ -9,7 +9,7 @@ import org.tricol.supplierchain.dto.request.ProduitRequestDTO;
 import org.tricol.supplierchain.dto.request.ProduitUpdatDTO;
 import org.tricol.supplierchain.dto.response.ProduitResponseDTO;
 import org.tricol.supplierchain.dto.response.StockProduitResponseDTO;
-import org.tricol.supplierchain.service.inter.GestionStock;
+import org.tricol.supplierchain.service.inter.GestionStockService;
 import org.tricol.supplierchain.service.inter.Produitservice;
 
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.List;
 public class ProduitController {
 
     private final Produitservice produitservice;
-    private final GestionStock stockService;
+    private final GestionStockService stockService;
 
     @GetMapping
     public ResponseEntity<List<ProduitResponseDTO>> getAllProduits() {

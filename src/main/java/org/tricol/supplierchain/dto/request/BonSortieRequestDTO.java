@@ -1,6 +1,7 @@
 package org.tricol.supplierchain.dto.request;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -15,6 +16,7 @@ public class BonSortieRequestDTO {
 
 
     @NotNull(message = "La date de sortie est obligatoire")
+    @FutureOrPresent(message = "La date de livraison prevue doit etre aujourd'hui ou ulterieure")
     private LocalDate dateSortie;
 
     @NotNull(message = "Le motif est obligatoire")
