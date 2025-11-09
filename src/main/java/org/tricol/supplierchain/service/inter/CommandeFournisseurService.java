@@ -22,5 +22,7 @@ public interface CommandeFournisseurService {
 
     CommandeFournisseurResponseDTO receiveCommande(Long id);
 
+    CommandeFournisseurResponseDTO validerCommande(Long id);
+
 
 }

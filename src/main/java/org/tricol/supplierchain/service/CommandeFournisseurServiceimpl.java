@@ -73,7 +73,7 @@ public class CommandeFournisseurServiceimpl implements CommandeFournisseurServic
         for (LigneCommandeCreateDTO ligneDTO : createDTO.getLignes()){
             Produit produit = produitRepository
                     .findById(ligneDTO.getProduitId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Pas de produit avec ID: " + ligneDTO.getProduitId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Produit non trouve"));
             LigneCommande ligne = LigneCommande.builder()
                     .produit(produit)
                     .commande(commande)
@@ -231,6 +231,17 @@ public class CommandeFournisseurServiceimpl implements CommandeFournisseurServic
         CommandeFournisseur receivedCommande = commandeFournisseurRepository.save(commande);
 
         return commandeFournisseurMapper.toResponseDto(receivedCommande);
+    }
+
+    @Override
+    public CommandeFournisseurResponseDTO validerCommande(Long commandeId){
+        CommandeFournisseur commande = commandeFournisseurRepository.findById(commandeId).orElseThrow(() -> new ResourceNotFoundException("Commande non trouvee"));
+        if (commande.getStatut() != StatutCommande.EN_ATTENTE){
+            throw new BusinessException("Seuls les commande avec Statut En Attente peuvent etre validee");
+        }
+        commande.setStatut(StatutCommande.VALIDEE);
+        commandeFournisseurRepository.save(commande);
+        return commandeFournisseurMapper.toResponseDto(commande);
     }
 
 

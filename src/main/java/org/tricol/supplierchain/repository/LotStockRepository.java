@@ -15,6 +15,7 @@ import java.util.List;
 public interface LotStockRepository extends JpaRepository<LotStock, Long> {
 
 
+
     List<LotStock> findByProduitIdAndStatutOrderByDateEntreeAsc(Long produitId, StatutLot statut);
 
     List<LotStock> findByCommandeFournisseurId(Long commandeId);

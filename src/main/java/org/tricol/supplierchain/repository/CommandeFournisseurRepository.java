@@ -13,4 +13,9 @@ public interface CommandeFournisseurRepository extends JpaRepository<CommandeFou
 
     @Query("SELECT c FROM CommandeFournisseur c LEFT JOIN FETCH c.lignesCommande WHERE c.fournisseur.id = :fournisseurId")
     List<CommandeFournisseur> findBySupplierIdWithRelationship(@Param("fournisseurId") Long fournisseurId);
+
+    @Query("SELECT DISTINCT c FROM CommandeFournisseur c JOIN c.lignesCommande l WHERE l.produit.id = :produitId")
+    List<CommandeFournisseur> findCommandesAvecProduit(@Param("produitId") Long produitId);
+
+
 }
