@@ -192,6 +192,14 @@ public class BonSortieServiceImpl implements BonSortieService {
 
             BigDecimal montantLigne = BigDecimal.ZERO;
 
+            BigDecimal totalDisponible = lotStocks.stream()
+                    .map(LotStock::getQuantiteRestante)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            if (ligne.getQuantite().compareTo(totalDisponible) > 0) {
+                throw new BusinessException("Stock insuffisant pour le produit : " + ligne.getProduit().getNom());
+            }
+
             for(LotStock lotStock : lotStocks) {
 
                 if (quantiteRestante.compareTo(BigDecimal.ZERO) <= 0) {
