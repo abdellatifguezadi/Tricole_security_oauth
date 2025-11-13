@@ -78,14 +78,21 @@ public class BonSortieServiceTest {
                 .ligneBonSorties(List.of(ligne))
                 .motif(PRODUCTION)
                 .build();
-
-
     }
 
 
 
     @Test
     public void testConsumationUnSeulLot() {
+        when(bonSortieRepository.save(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        when(lotStockRepository.save(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        when(mouvementStockRepository.save(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
         LotStock lotStock = LotStock.builder()
                 .id(1L)
                 .quantiteRestante(new BigDecimal("20"))
@@ -112,8 +119,20 @@ public class BonSortieServiceTest {
 
     }
 
+
+
     @Test
     public void testConsumationPlusieursLots() {
+        // stubs required by this test
+        when(bonSortieRepository.save(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        when(lotStockRepository.save(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        when(mouvementStockRepository.save(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
         LotStock lotStock1 = LotStock.builder()
                 .id(1L)
                 .quantiteRestante(new BigDecimal("2"))
@@ -122,12 +141,14 @@ public class BonSortieServiceTest {
                 .build();
 
         LotStock lotStock2 = LotStock.builder()
+                .id(2L)
                 .quantiteRestante(new BigDecimal("2"))
                 .prixUnitaireAchat(new BigDecimal("6"))
                 .dateEntree(LocalDateTime.now().minusDays(6))
                 .build();
 
         LotStock lotStock3 = LotStock.builder()
+                .id(3L)
                 .quantiteRestante(new BigDecimal("10"))
                 .prixUnitaireAchat(new BigDecimal("7"))
                 .dateEntree(LocalDateTime.now().minusDays(5))
@@ -187,6 +208,16 @@ public class BonSortieServiceTest {
 
     @Test
     public void testConsumationCompletLots() {
+        // stubs required by this test
+        when(bonSortieRepository.save(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        when(lotStockRepository.save(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        when(mouvementStockRepository.save(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
         LotStock lotStock1 = LotStock.builder()
                 .id(1L)
                 .quantiteRestante(new BigDecimal("9"))
@@ -218,7 +249,6 @@ public class BonSortieServiceTest {
         assertThat(bonSortie.getMontantTotal()).isEqualTo(new BigDecimal("55"));
 
     }
-
 
 
 }
