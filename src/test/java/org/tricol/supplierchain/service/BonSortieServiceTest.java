@@ -208,7 +208,6 @@ public class BonSortieServiceTest {
 
     @Test
     public void testConsumationCompletLots() {
-        // stubs required by this test
         when(bonSortieRepository.save(any()))
                 .thenAnswer(inv -> inv.getArgument(0));
 
