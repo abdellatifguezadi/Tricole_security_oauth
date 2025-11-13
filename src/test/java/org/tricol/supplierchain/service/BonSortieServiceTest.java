@@ -27,6 +27,7 @@ import org.tricol.supplierchain.service.BonSortieServiceImpl;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -83,6 +84,7 @@ public class BonSortieServiceTest {
 
 
     @Test
+    @DisplayName("Scénario 1 : Sortie simple consommant partiellement un seul lot")
     public void testConsumationUnSeulLot() {
         when(bonSortieRepository.save(any()))
                 .thenAnswer(inv -> inv.getArgument(0));
@@ -115,6 +117,8 @@ public class BonSortieServiceTest {
 
         assertThat(lotStock.getQuantiteRestante()).isEqualTo(new BigDecimal("10"));
         assertThat(bonSortie.getMontantTotal()).isEqualTo(new BigDecimal("50"));
+        assertThat(produit.getStockActuel()).isEqualTo(new BigDecimal("20"));
+
 
 
     }
@@ -122,8 +126,8 @@ public class BonSortieServiceTest {
 
 
     @Test
+    @DisplayName("Scénario 2 : Sortie nécessitant la consommation de plusieurs lots successifs")
     public void testConsumationPlusieursLots() {
-        // stubs required by this test
         when(bonSortieRepository.save(any()))
                 .thenAnswer(inv -> inv.getArgument(0));
 
@@ -171,12 +175,15 @@ public class BonSortieServiceTest {
         assertThat(lotStock2.getQuantiteRestante()).isEqualTo(BigDecimal.ZERO);
         assertThat(lotStock3.getQuantiteRestante()).isEqualTo(new BigDecimal("4"));
         assertThat(bonSortie.getMontantTotal()).isEqualTo(new BigDecimal("64"));
+        assertThat(produit.getStockActuel()).isEqualTo(new BigDecimal("20"));
+
 
 
     }
 
 
     @Test
+    @DisplayName("Scénario 3 : Sortie avec stock insuffisant (gestion d'erreur)")
     public void testStockInsuffisant() {
         LotStock lotStock1 = LotStock.builder()
                 .id(1L)
@@ -203,10 +210,13 @@ public class BonSortieServiceTest {
         verify(mouvementStockRepository, never()).save(any());
         verify(lotStockRepository, never()).save(any());
         verify(bonSortieRepository, never()).save(any());
+        assertThat(produit.getStockActuel()).isEqualTo(new BigDecimal("30"));
+
     }
 
 
     @Test
+    @DisplayName("Scénario 4 : Sortie épuisant exactement le stock disponible")
     public void testConsumationCompletLots() {
         when(bonSortieRepository.save(any()))
                 .thenAnswer(inv -> inv.getArgument(0));
@@ -246,8 +256,44 @@ public class BonSortieServiceTest {
         assertThat(lotStock1.getQuantiteRestante()).isEqualTo(BigDecimal.ZERO);
         assertThat(lotStock2.getQuantiteRestante()).isEqualTo(BigDecimal.ZERO);
         assertThat(bonSortie.getMontantTotal()).isEqualTo(new BigDecimal("55"));
+        assertThat(produit.getStockActuel()).isEqualTo(new BigDecimal("20"));
+
 
     }
 
+
+    @Test
+    @DisplayName("Vérifier que la validation d'un bon de sortie (passage de BROUILLON à VALIDÉ) déclenche automatiquement")
+    public void testStatusChange() {
+        when(bonSortieRepository.findById(1L)).thenReturn(Optional.of(bonSortie));
+        when(gestionStockService.verifyStockPourBonSortie(bonSortie)).thenReturn(List.of());
+
+        when(bonSortieRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(lotStockRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(mouvementStockRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(bonSortieMapper.toResponseDTO(any())).thenReturn(new BonSortieResponseDTO());
+
+        LotStock lotStock = LotStock.builder()
+                .id(1L)
+                .quantiteRestante(new BigDecimal("20"))
+                .prixUnitaireAchat(new BigDecimal("5"))
+                .dateEntree(LocalDateTime.now().minusDays(5))
+                .build();
+
+        when(lotStockRepository.findByProduitIdOrderByDateEntreeAsc(1L))
+                .thenReturn(List.of(lotStock));
+
+        BonSortieResponseDTO response = bonSortieService.validationBonSortie(1L);
+
+        assertThat(response).isNotNull();
+        assertThat(bonSortie.getStatut()).isEqualTo(StatutBonSortie.VALIDE);
+        verify(mouvementStockRepository, times(1)).save(any());
+        verify(lotStockRepository, times(1)).save(any());
+        verify(bonSortieRepository, times(1)).save(any());
+
+        assertThat(produit.getStockActuel()).isEqualTo(new BigDecimal("20"));
+
+        assertThat(bonSortie.getMontantTotal()).isEqualTo(new BigDecimal("50"));
+    }
 
 }
