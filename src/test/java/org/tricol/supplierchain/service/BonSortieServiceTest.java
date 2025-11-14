@@ -104,11 +104,13 @@ public class BonSortieServiceTest {
 
         BonSortieResponseDTO responseDTO = bonSortieService.performActualValidation(bonSortie);
 
+        ArgumentCaptor<MouvementStock> mouvementCaptor = ArgumentCaptor.forClass(MouvementStock.class);
+        verify(mouvementStockRepository, times(1)).save(mouvementCaptor.capture());
+        
         assertThat(responseDTO).isNotNull();
-        verify(mouvementStockRepository, times(1))
-                .save(argThat(mv -> mv != null && mv.getTypeMouvement() == TypeMouvement.SORTIE));
-        verify(lotStockRepository,times(1)).save(any());
-        verify(bonSortieRepository,times(1)).save(any());
+        assertThat(mouvementCaptor.getValue().getTypeMouvement()).isEqualTo(TypeMouvement.SORTIE);
+        verify(lotStockRepository,times(1)).save(any(LotStock.class));
+        verify(bonSortieRepository,times(1)).save(any(BonSortie.class));
 
         assertThat(lotStock.getQuantiteRestante()).isEqualTo(new BigDecimal("10"));
         assertThat(bonSortie.getMontantTotal()).isEqualTo(new BigDecimal("50"));
@@ -154,9 +156,9 @@ public class BonSortieServiceTest {
         BonSortieResponseDTO responseDTO = bonSortieService.performActualValidation(bonSortie);
 
         assertThat(responseDTO).isNotNull();
-        verify(mouvementStockRepository, times(3)).save(any());
-        verify(lotStockRepository,times(3)).save(any());
-        verify(bonSortieRepository,times(1)).save(any());
+        verify(mouvementStockRepository, times(3)).save(any(MouvementStock.class));
+        verify(lotStockRepository,times(3)).save(any(LotStock.class));
+        verify(bonSortieRepository,times(1)).save(any(BonSortie.class));
 
         assertThat(lotStock1.getQuantiteRestante()).isEqualTo(BigDecimal.ZERO);
         assertThat(lotStock2.getQuantiteRestante()).isEqualTo(BigDecimal.ZERO);
@@ -194,9 +196,9 @@ public class BonSortieServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Stock insuffisant pour le produit");
 
-        verify(mouvementStockRepository, never()).save(any());
-        verify(lotStockRepository, never()).save(any());
-        verify(bonSortieRepository, never()).save(any());
+        verify(mouvementStockRepository, never()).save(any(MouvementStock.class));
+        verify(lotStockRepository, never()).save(any(LotStock.class));
+        verify(bonSortieRepository, never()).save(any(BonSortie.class));
         assertThat(produit.getStockActuel()).isEqualTo(new BigDecimal("30"));
 
     }
@@ -229,9 +231,9 @@ public class BonSortieServiceTest {
         BonSortieResponseDTO responseDTO = bonSortieService.performActualValidation(bonSortie);
 
         assertThat(responseDTO).isNotNull();
-        verify(mouvementStockRepository, times(2)).save(any());
-        verify(lotStockRepository,times(2)).save(any());
-        verify(bonSortieRepository,times(1)).save(any());
+        verify(mouvementStockRepository, times(2)).save(any(MouvementStock.class));
+        verify(lotStockRepository,times(2)).save(any(LotStock.class));
+        verify(bonSortieRepository,times(1)).save(any(BonSortie.class));
 
         assertThat(lotStock1.getQuantiteRestante()).isEqualTo(BigDecimal.ZERO);
         assertThat(lotStock2.getQuantiteRestante()).isEqualTo(BigDecimal.ZERO);
@@ -263,9 +265,9 @@ public class BonSortieServiceTest {
 
         assertThat(response).isNotNull();
         assertThat(bonSortie.getStatut()).isEqualTo(StatutBonSortie.VALIDE);
-        verify(mouvementStockRepository, times(1)).save(any());
-        verify(lotStockRepository, times(1)).save(any());
-        verify(bonSortieRepository, times(1)).save(any());
+        verify(mouvementStockRepository, times(1)).save(any(MouvementStock.class));
+        verify(lotStockRepository, times(1)).save(any(LotStock.class));
+        verify(bonSortieRepository, times(1)).save(any(BonSortie.class));
 
         assertThat(produit.getStockActuel()).isEqualTo(new BigDecimal("20"));
 
@@ -286,7 +288,7 @@ public class BonSortieServiceTest {
         when(lotStockRepository.findByProduitIdOrderByDateEntreeAsc(1L))
                 .thenReturn(List.of(lotStock));
 
-        when(bonSortieMapper.toResponseDTO(any())).thenReturn(new BonSortieResponseDTO());
+        when(bonSortieMapper.toResponseDTO(any(BonSortie.class))).thenReturn(new BonSortieResponseDTO());
 
         bonSortieService.performActualValidation(bonSortie);
 
