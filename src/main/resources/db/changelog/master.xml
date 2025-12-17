@@ -10,6 +10,7 @@
     <include file="db/changelog/changes/003-add-atelier-to-bon-sortie.sql"/>
     <include file="db/changelog/changes/004-add-montant-total-to-bon-sortie.sql"/>
     <include file="db/changelog/changes/005-create-security-tables.sql"/>
+    <include file="db/changelog/changes/006-insert-roles-permissions.sql"/>
     <include file="/db/changelog/changes/101-data-initializer.sql"/>
 
 
