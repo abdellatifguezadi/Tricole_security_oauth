@@ -61,18 +61,21 @@ public class CommandeFournisseurController {
     }
 
     @GetMapping("/fournisseur/{fournisseurId}")
+    @PreAuthorize("hasAuthority('COMMANDE_READ')")
     public ResponseEntity<List<CommandeFournisseurResponseDTO>> getCommandeBySupplierId(@PathVariable("fournisseurId") Long id){
         List<CommandeFournisseurResponseDTO> commandes = commandeFournisseurService.getCommandesBySupplierId(id);
         return ResponseEntity.ok(commandes);
     }
 
     @PutMapping("/{commandeId}/reception")
+    @PreAuthorize("hasAuthority('COMMANDE_RECEIVE')")
     public ResponseEntity<CommandeFournisseurResponseDTO> receiveCommande(@PathVariable("commandeId") Long id){
         CommandeFournisseurResponseDTO commande = commandeFournisseurService.receiveCommande(id);
         return ResponseEntity.ok(commande);
     }
 
     @PutMapping("/{commandeId}/valider")
+    @PreAuthorize("hasAuthority('COMMANDE_VALIDATE')")
     public ResponseEntity<CommandeFournisseurResponseDTO> validerCommande(@PathVariable("commandeId") Long id){
         CommandeFournisseurResponseDTO commande = commandeFournisseurService.validerCommande(id);
         return ResponseEntity.ok(commande);

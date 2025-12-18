@@ -75,6 +75,7 @@ public class BonSortieController {
     }
 
     @PutMapping("/validation/{id}")
+    @PreAuthorize("hasAuthority('BONSORTIE_VALIDATE')")
     public ResponseEntity<BonSortieResponseDTO> validationBonSortie(@PathVariable Long id) {
             BonSortieResponseDTO validatedBonSortie = bonSortieService.validationBonSortie(id);
             return ResponseEntity.ok(validatedBonSortie);

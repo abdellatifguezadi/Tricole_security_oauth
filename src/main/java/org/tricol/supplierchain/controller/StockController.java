@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.tricol.supplierchain.enums.TypeMouvement;
 import org.tricol.supplierchain.dto.response.AlerteStockResponseDTO;
@@ -28,11 +29,13 @@ public class StockController {
 
 
     @GetMapping
+    @PreAuthorize("hasAuthority('STOCK_READ')")
     public ResponseEntity<StockGlobalResponseDTO> getStockGlobal() {
         return ResponseEntity.ok(stockService.getStockGlobal());
     }
 
     @GetMapping("/produit/{id}")
+    @PreAuthorize("hasAuthority('STOCK_READ')")
     public ResponseEntity<StockProduitResponseDTO> getStockByProduit(
             @PathVariable Long id
     ){
@@ -40,11 +43,13 @@ public class StockController {
     }
 
     @GetMapping("/mouvements")
+    @PreAuthorize("hasAuthority('STOCK_READ')")
     public ResponseEntity<List<MouvementStockResponseDTO>> getMouvementsHistorique(){
         return ResponseEntity.ok(stockService.getHistoriqueMouvements());
     }
 
     @GetMapping("/mouvements/filter")
+    @PreAuthorize("hasAuthority('STOCK_HISTORIQUE')")
     public ResponseEntity<?> getMouvementsHistoriqueWithFilter(
             @RequestParam(required = false) Long produitId,
             @RequestParam(required = false) String reference,
@@ -61,11 +66,13 @@ public class StockController {
     }
 
     @GetMapping("/mouvements/produit/{id}")
+    @PreAuthorize("hasAuthority('STOCK_READ')")
     public ResponseEntity<List<MouvementStockResponseDTO>> getMouvementsByProduit(@PathVariable Long id){
         return ResponseEntity.ok(stockService.getMouvementsByProduit(id));
     }
 
     @GetMapping("/valorisation")
+    @PreAuthorize("hasAuthority('STOCK_VALORISATION')")
     public ResponseEntity<BigDecimal> getValorisationTotale(){
         return ResponseEntity.ok(stockService.getValorisationTotale());
     }
