@@ -32,11 +32,18 @@ public class UserManagementController {
         return ResponseEntity.ok("Permission removed successfully");
     }
 
-    @PatchMapping("/{userId}/permissions/{permissionId}/toggle")
+    @PatchMapping("/{userId}/permissions/{permissionId}/activate")
     @PreAuthorize("hasAuthority('USER_MANAGE')")
-    public ResponseEntity<String> togglePermission(@PathVariable Long userId, @PathVariable Long permissionId, @RequestParam boolean active) {
-        userManagementService.togglePermissionStatus(userId, permissionId, active);
-        return ResponseEntity.ok("Permission status updated successfully");
+    public ResponseEntity<String> activatePermission(@PathVariable Long userId, @PathVariable Long permissionId) {
+        userManagementService.activatePermission(userId, permissionId);
+        return ResponseEntity.ok("Permission activated successfully");
+    }
+
+    @PatchMapping("/{userId}/permissions/{permissionId}/deactivate")
+    @PreAuthorize("hasAuthority('USER_MANAGE')")
+    public ResponseEntity<String> deactivatePermission(@PathVariable Long userId, @PathVariable Long permissionId) {
+        userManagementService.deactivatePermission(userId, permissionId);
+        return ResponseEntity.ok("Permission deactivated successfully");
     }
 
     @PostMapping("/{userId}/role/{roleId}")

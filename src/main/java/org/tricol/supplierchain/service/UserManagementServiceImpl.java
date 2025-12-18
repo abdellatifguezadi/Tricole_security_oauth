@@ -10,6 +10,7 @@ import org.tricol.supplierchain.dto.response.UserPermissionResponse;
 import org.tricol.supplierchain.entity.RoleApp;
 import org.tricol.supplierchain.entity.UserPermission;
 import org.tricol.supplierchain.exception.DuplicateResourceException;
+import org.tricol.supplierchain.exception.OperationNotAllowedException;
 import org.tricol.supplierchain.exception.ResourceNotFoundException;
 import org.tricol.supplierchain.mapper.UserPermissionMapper;
 import org.tricol.supplierchain.repository.PermissionRepository;
@@ -65,16 +66,49 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     @Transactional
-    public void togglePermissionStatus(Long userId, Long permissionId, boolean active) {
-        UserPermission userPermission = userPermissionRepository.findByUserIdAndPermissionId(userId, permissionId)
-                .orElseThrow(() -> new ResourceNotFoundException("User permission not found"));
+    public void activatePermission(Long userId, Long permissionId) {
+        UserApp user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        userPermission.setActive(active);
-        if (!active) {
-            userPermission.setRevokedAt(LocalDateTime.now());
-        } else {
-            userPermission.setRevokedAt(null);
+        Permission permission = permissionRepository.findById(permissionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Permission not found"));
+
+        UserPermission userPermission = userPermissionRepository.findByUserIdAndPermissionId(userId, permissionId)
+                .orElseGet(() -> UserPermission.builder()
+                        .user(user)
+                        .permission(permission)
+                        .build());
+
+        if (userPermission.getId() != null && userPermission.isActive()) {
+            throw new OperationNotAllowedException("Permission is already active");
         }
+
+        userPermission.setActive(true);
+        userPermission.setRevokedAt(null);
+        userPermissionRepository.save(userPermission);
+    }
+
+    @Override
+    @Transactional
+    public void deactivatePermission(Long userId, Long permissionId) {
+        UserApp user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Permission permission = permissionRepository.findById(permissionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Permission not found"));
+
+        UserPermission userPermission = userPermissionRepository.findByUserIdAndPermissionId(userId, permissionId)
+                .orElseGet(() -> UserPermission.builder()
+                        .user(user)
+                        .permission(permission)
+                        .build());
+
+        if (userPermission.getId() != null && !userPermission.isActive()) {
+            throw new OperationNotAllowedException("Permission is already deactivated");
+        }
+
+        userPermission.setActive(false);
+        userPermission.setRevokedAt(LocalDateTime.now());
         userPermissionRepository.save(userPermission);
     }
 

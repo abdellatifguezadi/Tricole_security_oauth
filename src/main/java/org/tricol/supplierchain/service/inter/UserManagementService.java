@@ -6,6 +6,7 @@ import org.tricol.supplierchain.dto.response.UserPermissionResponse;
 public interface UserManagementService {
     UserPermissionResponse assignPermissionToUser(UserPermissionRequest request, Long adminId);
     void removePermissionFromUser(Long userId, Long permissionId);
-    void togglePermissionStatus(Long userId, Long permissionId, boolean active);
+    void activatePermission(Long userId, Long permissionId);
+    void deactivatePermission(Long userId, Long permissionId);
     void assignRoleToUser(Long userId, Long roleId);
 }
