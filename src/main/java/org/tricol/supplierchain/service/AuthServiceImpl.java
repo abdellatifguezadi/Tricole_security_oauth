@@ -12,11 +12,14 @@ import org.tricol.supplierchain.dto.response.AuthResponse;
 import org.tricol.supplierchain.entity.UserApp;
 import org.tricol.supplierchain.enums.RoleName;
 import org.tricol.supplierchain.exception.DuplicateResourceException;
+import org.tricol.supplierchain.exception.OperationNotAllowedException;
 import org.tricol.supplierchain.mapper.UserMapper;
 import org.tricol.supplierchain.repository.RoleRepository;
 import org.tricol.supplierchain.repository.UserRepository;
 import org.tricol.supplierchain.security.JwtService;
 import org.tricol.supplierchain.service.inter.AuthService;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +44,6 @@ public class AuthServiceImpl implements AuthService {
         UserApp user = userMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         
-        // First user becomes ADMIN
         if (userRepository.count() == 0) {
             roleRepository.findByName(RoleName.ADMIN)
                     .ifPresent(user::setRole);
@@ -59,6 +61,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
@@ -68,6 +71,10 @@ public class AuthServiceImpl implements AuthService {
 
         UserApp user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow();
+
+        if (user.getRole() == null) {
+            throw new OperationNotAllowedException("User does not have an assigned role");
+        }
 
         String accessToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
