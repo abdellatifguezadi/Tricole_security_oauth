@@ -7,7 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.tricol.supplierchain.dto.request.UserPermissionRequest;
 import org.tricol.supplierchain.dto.response.UserPermissionResponse;
-import org.tricol.supplierchain.entity.UserApp;
+import org.tricol.supplierchain.security.CustomUserDetails;
 import org.tricol.supplierchain.service.inter.UserManagementService;
 
 @RestController
@@ -20,8 +20,8 @@ public class UserManagementController {
     @PostMapping("/permissions")
     @PreAuthorize("hasAuthority('USER_MANAGE')")
     public ResponseEntity<UserPermissionResponse> assignPermission(@RequestBody UserPermissionRequest request, Authentication authentication) {
-        UserApp admin = (UserApp) authentication.getPrincipal();
-        UserPermissionResponse response = userManagementService.assignPermissionToUser(request, admin.getId());
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        UserPermissionResponse response = userManagementService.assignPermissionToUser(request, userDetails.getUser().getId());
         return ResponseEntity.ok(response);
     }
 
