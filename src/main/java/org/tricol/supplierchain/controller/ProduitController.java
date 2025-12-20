@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.tricol.supplierchain.dto.request.PointCommandeRequest;
 import org.tricol.supplierchain.dto.request.ProduitRequestDTO;
 import org.tricol.supplierchain.dto.request.ProduitUpdatDTO;
 import org.tricol.supplierchain.dto.response.ProduitResponseDTO;
@@ -65,6 +66,13 @@ public class ProduitController {
     @PreAuthorize("hasAuthority('PRODUIT_READ')")
     public ResponseEntity<StockProduitResponseDTO> getStockByProduit(@PathVariable Long id) {
         return ResponseEntity.ok(stockService.getStockByProduit(id));
+    }
+
+    @PostMapping("/seuil/{id}")
+    @PreAuthorize("hasAuthority('PRODUIT_CONFIGURE_SEUIL')")
+    public ResponseEntity<ProduitResponseDTO> changeSeuil(@PathVariable Long id, @Valid @RequestBody PointCommandeRequest request){
+        ProduitResponseDTO produitResponseDTO = produitservice.updatePointCommande(id,request);
+        return ResponseEntity.ok(produitResponseDTO);
     }
 
 
