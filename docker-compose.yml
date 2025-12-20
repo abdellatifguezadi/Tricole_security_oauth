@@ -27,8 +27,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/tricol?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
       SPRING_JPA_HIBERNATE_DDL_AUTO: none
-      SERVER_SERVLET_CONTEXT_PATH: /tricol/api/v2
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_SERVLET_CONTEXT_PATH: /
 
 volumes:
   mysql_data:
