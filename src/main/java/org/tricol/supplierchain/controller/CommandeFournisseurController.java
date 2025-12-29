@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.tricol.supplierchain.dto.request.CommandeFournisseurCreateDTO;
 import org.tricol.supplierchain.dto.request.CommandeFournisseurUpdateDTO;
@@ -27,6 +28,28 @@ public class CommandeFournisseurController {
         List<CommandeFournisseurResponseDTO> commandes = commandeFournisseurService.getAllCommandes();
         if (commandes == null || commandes.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(commandes);
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> testEndpoint(){
+        return ResponseEntity.ok("Commandes endpoint working!");
+    }
+
+    @GetMapping("/test-protected")
+    @PreAuthorize("hasRole('MAGASINIER') or hasRole('USER')")
+    public ResponseEntity<String> testProtectedEndpoint(){
+        return ResponseEntity.ok("OAuth2 authentication successful with role!");
+    }
+
+    @GetMapping("/oauth2-commandes")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<String> getOAuth2Commandes(){
+        return ResponseEntity.ok("OAuth2 user can access this endpoint!");
+    }
+
+    @GetMapping("/test-roles")
+    public ResponseEntity<String> testRoles(Authentication authentication){
+        return ResponseEntity.ok("Your authorities: " + authentication.getAuthorities());
     }
 
     @PostMapping

@@ -16,10 +16,18 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.tricol.supplierchain.security.AccessDeniedHandlerImpl;
 import org.tricol.supplierchain.security.AuthenticationEntryPointImpl;
 import org.tricol.supplierchain.security.CustomUserDetailsService;
 import org.tricol.supplierchain.security.JwtAuthenticationFilter;
+ //import org.tricol.supplierchain.service.OAuth2UserService;
 
 @Configuration
 @EnableWebSecurity
@@ -31,6 +39,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final AuthenticationEntryPointImpl authenticationEntryPoint;
     private final AccessDeniedHandlerImpl accessDeniedHandler;
+    //private final OAuth2UserService oAuth2UserService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -40,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/api/test/public",
+                                "/api/v1/commandes/test",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"
@@ -47,7 +57,22 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
+                )
+                .oauth2Login(oauth2 -> oauth2
+//                         .userInfoEndpoint(userInfo -> userInfo
+//                                 .userService(oAuth2UserService)
+//                         )
+                        .defaultSuccessUrl("/api/auth/oauth2/success", true)
+                        .failureUrl("/api/auth/oauth2/failure")
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt
+                                .jwkSetUri("http://keycloak:8080/realms/tricol-realm/protocol/openid-connect/certs")
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                        )
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(authenticationEntryPoint)
@@ -75,5 +100,40 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            Collection<GrantedAuthority> authorities = new ArrayList<>();
+            
+            try {
+                Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
+                if (realmAccess != null && realmAccess.containsKey("roles")) {
+                    List<String> roles = (List<String>) realmAccess.get("roles");
+                    for (String role : roles) {
+                        authorities.add(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
+                        authorities.add(new SimpleGrantedAuthority(role.toUpperCase()));
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Error extracting roles: " + e.getMessage());
+            }
+            
+            System.out.println("JWT Authorities: " + authorities);
+            return authorities;
+        });
+        return converter;
     }
 }

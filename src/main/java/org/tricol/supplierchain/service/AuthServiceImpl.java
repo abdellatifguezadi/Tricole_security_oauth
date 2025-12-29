@@ -115,4 +115,21 @@ public class AuthServiceImpl implements AuthService {
             throw e;
         }
     }
+
+    @Override
+    public UserApp createKeycloakUserIfNotExists(String username) {
+        return userRepository.findByUsername(username)
+                .orElseGet(() -> {
+                    UserApp user = UserApp.builder()
+                            .username(username)
+                            .email(username + "@keycloak.local")
+                            .fullName(username)
+                            .password("")
+                            .enabled(true)
+                            .locked(false)
+                            .role(null)
+                            .build();
+                    return userRepository.save(user);
+                });
+    }
 }

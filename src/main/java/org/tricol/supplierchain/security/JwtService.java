@@ -41,6 +41,17 @@ public class JwtService {
         return buildToken(userDetails, refreshExpiration);
     }
 
+    public String generateTokenFromUser(org.tricol.supplierchain.entity.UserApp user) {
+        return Jwts.builder()
+                .subject(user.getUsername())
+                .claim("email", user.getEmail())
+                .claim("role", user.getRole() != null ? user.getRole().getName().name() : "")
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .signWith(getSignInKey())
+                .compact();
+    }
+
     public long getRefreshTokenExpirationInSeconds() {
         return refreshExpiration / 1000;
     }

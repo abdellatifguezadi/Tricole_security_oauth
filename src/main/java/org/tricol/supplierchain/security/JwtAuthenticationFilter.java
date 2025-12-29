@@ -34,21 +34,43 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String jwt = authHeader.substring(7);
-        final String username = jwtService.extractUsername(jwt);
-
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+        
+        if (isKeycloakToken(jwt)) {
+            filterChain.doFilter(request, response);
+            return;
         }
+        
+        try {
+            final String username = jwtService.extractUsername(jwt);
+
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                
+                if (jwtService.isTokenValid(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        
         filterChain.doFilter(request, response);
+    }
+    
+    private boolean isKeycloakToken(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length == 3) {
+                String payload = new String(java.util.Base64.getUrlDecoder().decode(parts[1]));
+                return payload.contains("tricol-realm") || payload.contains("localhost:8180");
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
     }
 }

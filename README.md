@@ -87,8 +87,10 @@ java -jar target/supplierchain-0.0.1-SNAPSHOT.jar
 
 ### Authentication
 - `POST /api/auth/register` - Inscription
-- `POST /api/auth/login` - Connexion
+- `POST /api/auth/login` - Connexion JWT
 - `POST /api/auth/refresh` - Refresh token
+- `GET /oauth2/authorization/keycloak` - Connexion OAuth2 Keycloak
+- `GET /api/auth/oauth2/success` - Callback OAuth2 success
 
 ### Roles
 - ADMIN
@@ -99,10 +101,35 @@ java -jar target/supplierchain-0.0.1-SNAPSHOT.jar
 ## 🔐 Sécurité
 
 L'application utilise:
+- **Authentification hybride** : JWT + OAuth2 Keycloak
 - Spring Security avec JWT
+- OAuth2 Resource Server
 - Gestion des rôles et permissions
 - System d'audit des actions sensibles
 - Refresh tokens
+
+## 🔧 Configuration Keycloak
+
+### Démarrage de Keycloak
+```bash
+docker-compose up keycloak
+```
+
+### Configuration initiale
+1. Accédez à http://localhost:8180
+2. Connectez-vous avec admin/admin
+3. Créez un realm "tricol-realm"
+4. Créez un client "tricol-client" avec:
+   - Client Type: OpenID Connect
+   - Client authentication: ON
+   - Valid redirect URIs: http://localhost:8080/login/oauth2/code/keycloak
+   - Web origins: http://localhost:8080
+5. Notez le client secret dans l'onglet Credentials
+6. Mettez à jour `application.properties` avec le client secret
+
+### Utilisation
+- **JWT classique** : `POST /api/auth/login`
+- **OAuth2 Keycloak** : `GET /oauth2/authorization/keycloak`
 
 ## 🛠️ Technologies
 
