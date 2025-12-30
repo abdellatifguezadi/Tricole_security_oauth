@@ -36,6 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt = authHeader.substring(7);
         
         if (isKeycloakToken(jwt)) {
+            // Laisser passer pour traitement par JwtUserCreationFilter
             filterChain.doFilter(request, response);
             return;
         }

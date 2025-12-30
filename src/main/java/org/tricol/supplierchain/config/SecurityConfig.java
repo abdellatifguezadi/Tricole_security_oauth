@@ -18,28 +18,24 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.GrantedAuthority;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.tricol.supplierchain.security.AccessDeniedHandlerImpl;
 import org.tricol.supplierchain.security.AuthenticationEntryPointImpl;
 import org.tricol.supplierchain.security.CustomUserDetailsService;
-import org.tricol.supplierchain.security.JwtAuthenticationFilter;
- //import org.tricol.supplierchain.service.OAuth2UserService;
+import org.tricol.supplierchain.security.UnifiedJwtFilter;
+import org.tricol.supplierchain.security.JwtUserCreationFilter;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final UnifiedJwtFilter unifiedJwtFilter;
     private final CustomUserDetailsService userDetailsService;
     private final AuthenticationEntryPointImpl authenticationEntryPoint;
     private final AccessDeniedHandlerImpl accessDeniedHandler;
-    //private final OAuth2UserService oAuth2UserService;
+    private final JwtUserCreationFilter jwtUserCreationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -57,29 +53,15 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(false)
-                )
-                .oauth2Login(oauth2 -> oauth2
-//                         .userInfoEndpoint(userInfo -> userInfo
-//                                 .userService(oAuth2UserService)
-//                         )
-                        .defaultSuccessUrl("/api/auth/oauth2/success", true)
-                        .failureUrl("/api/auth/oauth2/failure")
-                )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt
-                                .jwkSetUri("http://keycloak:8080/realms/tricol-realm/protocol/openid-connect/certs")
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                        )
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler)
                 )
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(unifiedJwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(jwtUserCreationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -112,28 +94,4 @@ public class SecurityConfig {
         return new RestTemplate();
     }
 
-    @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-            Collection<GrantedAuthority> authorities = new ArrayList<>();
-            
-            try {
-                Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
-                if (realmAccess != null && realmAccess.containsKey("roles")) {
-                    List<String> roles = (List<String>) realmAccess.get("roles");
-                    for (String role : roles) {
-                        authorities.add(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
-                        authorities.add(new SimpleGrantedAuthority(role.toUpperCase()));
-                    }
-                }
-            } catch (Exception e) {
-                System.out.println("Error extracting roles: " + e.getMessage());
-            }
-            
-            System.out.println("JWT Authorities: " + authorities);
-            return authorities;
-        });
-        return converter;
-    }
 }
