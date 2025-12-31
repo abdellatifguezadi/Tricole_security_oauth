@@ -96,12 +96,13 @@ public class UnifiedJwtFilter extends OncePerRequestFilter {
     }
     
     private Collection<GrantedAuthority> extractKeycloakAuthorities(Jwt jwt) {
-        Collection<GrantedAuthority> authorities = new ArrayList<>();
+        Set<GrantedAuthority> authorities = new HashSet<>();
         
         try {
             Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
             if (realmAccess != null && realmAccess.containsKey("roles")) {
                 List<String> roles = (List<String>) realmAccess.get("roles");
+                
                 for (String role : roles) {
                     authorities.add(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
                     authorities.add(new SimpleGrantedAuthority(role.toUpperCase()));
