@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
         MYSQL_ROOT_PASSWORD = credentials('mysql-root-password')
-        IMAGE_NAME = 'tricol-supplierchain'
+        IMAGE_NAME = 'abdellatif18722/tricol-supplierchain'
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
     
@@ -35,13 +35,8 @@ pipeline {
         
         stage('Docker Build') {
             steps {
-                script {
-                    sh 'ls -la /var/run/docker.sock'
-                    sh 'whoami'
-                    sh 'groups'
-                    sh 'docker --version || echo "Docker not found"'
-                    sh 'which docker || echo "Docker path not found"'
-                }
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
             }
         }
         

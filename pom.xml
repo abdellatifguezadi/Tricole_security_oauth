@@ -154,7 +154,9 @@
                 <configuration>
                     <reportFormat>plain</reportFormat>
                     <useFile>false</useFile>
-                    <argLine>-Xshare:off</argLine>
+                    <argLine>-Xms256m -Xmx512m -XX:MetaspaceSize=128m</argLine>
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
                 </configuration>
             </plugin>
             <plugin>
