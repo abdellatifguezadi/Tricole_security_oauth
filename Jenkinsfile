@@ -35,8 +35,13 @@ pipeline {
         
         stage('Docker Build') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
+                script {
+                    sh 'ls -la /var/run/docker.sock'
+                    sh 'whoami'
+                    sh 'groups'
+                    sh 'docker --version || echo "Docker not found"'
+                    sh 'which docker || echo "Docker path not found"'
+                }
             }
         }
         
