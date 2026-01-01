@@ -48,8 +48,16 @@ public class UnifiedJwtFilter extends OncePerRequestFilter {
         try {
             if (isKeycloakToken(jwt)) {
                 Jwt keycloakJwt = decodeKeycloakToken(jwt);
+                String username = keycloakJwt.getClaimAsString("preferred_username");
                 
-                Collection<GrantedAuthority> authorities = extractKeycloakAuthorities(keycloakJwt);
+                Collection<GrantedAuthority> authorities = new HashSet<>();
+                try {
+                    CustomUserDetails customUserDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
+                    authorities.addAll(customUserDetails.getAuthorities());
+                } catch (Exception e) {
+                }
+                
+                authorities.addAll(extractKeycloakAuthorities(keycloakJwt));
                 
                 JwtAuthenticationToken authToken = new JwtAuthenticationToken(keycloakJwt, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authToken);
