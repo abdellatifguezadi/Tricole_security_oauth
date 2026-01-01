@@ -44,12 +44,13 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sh '''
-                    docker-compose down || true
-                    docker-compose pull
-                    docker-compose up -d
-                '''
-            }
+                    sh '''
+                        docker-compose down --remove-orphans || true
+                        docker-compose pull || true
+                        docker-compose up -d || echo "Some containers are already running. Skipping start."
+                        docker ps --format "table {{.Names}}\t{{.Status}}"
+                    '''
+                }
         }
     }
 
