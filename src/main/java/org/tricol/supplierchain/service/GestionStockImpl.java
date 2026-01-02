@@ -119,27 +119,22 @@ public class GestionStockImpl implements GestionStockService {
             java.time.LocalDateTime dateFin,
             Pageable pageable) {
 
-        Specification<MouvementStock> specification = null;
+        Specification<MouvementStock> specification = Specification.where(null);
 
         if (produitId != null) {
-            specification = specification == null ? MouvementStockSpecification.hasProduitId(produitId)
-                    : specification.and(MouvementStockSpecification.hasProduitId(produitId));
+            specification = specification.and(MouvementStockSpecification.hasProduitId(produitId));
         }
         if (reference != null && !reference.isEmpty()) {
-            specification = specification == null ? MouvementStockSpecification.hasProduitReference(reference)
-                    : specification.and(MouvementStockSpecification.hasProduitReference(reference));
+            specification = specification.and(MouvementStockSpecification.hasProduitReference(reference));
         }
         if (type != null) {
-            specification = specification == null ? MouvementStockSpecification.hasTypeMouvement(type)
-                    : specification.and(MouvementStockSpecification.hasTypeMouvement(type));
+            specification = specification.and(MouvementStockSpecification.hasTypeMouvement(type));
         }
         if (numeroLot != null && !numeroLot.isEmpty()) {
-            specification = specification == null ? MouvementStockSpecification.hasNumeroLot(numeroLot)
-                    : specification.and(MouvementStockSpecification.hasNumeroLot(numeroLot));
+            specification = specification.and(MouvementStockSpecification.hasNumeroLot(numeroLot));
         }
         if (dateDebut != null || dateFin != null) {
-            specification = specification == null ? MouvementStockSpecification.hasDateBetween(dateDebut, dateFin)
-                    : specification.and(MouvementStockSpecification.hasDateBetween(dateDebut, dateFin));
+            specification = specification.and(MouvementStockSpecification.hasDateBetween(dateDebut, dateFin));
         }
 
         return mouvementStockRepository.findAll(specification, pageable)

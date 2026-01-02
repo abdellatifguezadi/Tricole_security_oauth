@@ -160,6 +160,7 @@ public class BonSortieServiceImpl implements BonSortieService {
     }
 
     @Override
+    @Transactional
     public BonSortieResponseDTO validationBonSortie(Long id) {
         BonSortie bonSortie = bonSortieRepository.findById(id)
                 .orElseThrow(()-> new ResourceNotFoundException("Bon de sortie non trouvé avec l'id " + id));
