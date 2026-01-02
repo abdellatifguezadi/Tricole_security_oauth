@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
         MYSQL_ROOT_PASSWORD = credentials('mysql-root-password')
+        SONAR_TOKEN = credentials('sonar-token')
         IMAGE_NAME = 'abdellatif18722/tricol-supplierchain'
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
@@ -19,6 +20,22 @@ pipeline {
                 sh './mvnw clean test'
             }
             post { always { junit testResults: 'target/surefire-reports/*.xml' } }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh './mvnw sonar:sonar -Dsonar.projectKey=tricol-supplierchain -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login=$SONAR_TOKEN'
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
         }
 
         stage('Build') {
